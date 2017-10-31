@@ -1,34 +1,48 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using NUnit.Framework;
+using NUnit.Framework.Internal.Filters;
 
 namespace HomeExercises
 {
-	public class NumberValidatorTests
-	{
-		[Test]
-		public void Test()
-		{
-			Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2, true));
-			Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
-			Assert.Throws<ArgumentException>(() => new NumberValidator(-1, 2, false));
-			Assert.DoesNotThrow(() => new NumberValidator(1, 0, true));
 
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("00.00"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("-0.00"));
-			Assert.IsTrue(new NumberValidator(17, 2, true).IsValidNumber("0.0"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("+0.00"));
-			Assert.IsTrue(new NumberValidator(4, 2, true).IsValidNumber("+1.23"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("+1.23"));
-			Assert.IsFalse(new NumberValidator(17, 2, true).IsValidNumber("0.000"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("-1.23"));
-			Assert.IsFalse(new NumberValidator(3, 2, true).IsValidNumber("a.sd"));
-		}
-	}
+    public class NumberValidatorTests
+    {
+        [TestCase("0.0",17, 2, true, ExpectedResult = true, TestName = "0.0")]
+        [TestCase("0", 17, 2, true, ExpectedResult = true, TestName = "Zero")]
+        [TestCase("00.00", 3, 2, true, ExpectedResult = false, TestName = "Leading zeros are accounted")]
+        [TestCase("-0.00", 3, 2, true, ExpectedResult = false, TestName = "Leading minus before zero is accounted")]
+        [TestCase("+0.00", 3, 2, true, ExpectedResult = false, TestName = "Leading plus before zero is accounted")]
+        [TestCase("+1.23", 4, 2, true, ExpectedResult = true, TestName = "Leading plus, length is suitable")]
+        [TestCase("+1.23", 3, 2, true, ExpectedResult = false, TestName = "Leading plus before non-zero digit is accounted")]
+        [TestCase("0.000", 17, 2, true, ExpectedResult = false, TestName = "Several zeros in fraction, length is suitable")]
+        [TestCase("-1.23", 3, 2, true, ExpectedResult = false, TestName = "Leading minus before non-zero digit is accounted")]
+        [TestCase("a.sd", 3, 2, true, ExpectedResult = false, TestName = "Letters instead of numbers")]
+
+        public bool isValidNumber(string value, int precision, int scale = 0, bool onlyPositive = false)
+        {
+            return new NumberValidator(precision,scale,onlyPositive).IsValidNumber(value);
+        }
+
+
+        [TestCase(-1,2,true,TestName = "Negative length is not accepted when numbers should be positive only")]
+        [TestCase(-1,2,false, TestName = "Negatie length is not accepted even when negative numbers allowed")]
+        public void ThrowsExceptionsWhenNumverValidatorInitializedWithNegativeNumberLength(int precision, int scale, bool onlyPositive)
+        {
+            Assert.That(() => new NumberValidator(precision,scale,onlyPositive), Throws.TypeOf<ArgumentException>());
+
+        }
+
+        [TestCase(1, 0, true,TestName = "Validator with integer only numbers is accepted")]
+        public void DoesNotTrhowExceptionWhenNumverValidatorInitializedWithValidData(int precision, int scale, bool onlyPositive)
+        {
+            new NumberValidator(precision, scale, onlyPositive);
+
+        }
+
+    }
 
 	public class NumberValidator
 	{
