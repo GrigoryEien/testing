@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -14,17 +15,11 @@ namespace HomeExercises
 
 			var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
 				new Person("Vasili III of Russia", 28, 170, 60, null));
+			actualTsar.ShouldBeEquivalentTo(expectedTsar,options => options
+			.Excluding(o => o.Id)
+			.Excluding( o => o.Parent.Id));
 
-            actualTsar.Name.Should().Be(expectedTsar.Name);
-		    actualTsar.Age.Should().Be(expectedTsar.Age);
-		    actualTsar.Height.Should().Be(expectedTsar.Height);
-		    actualTsar.Weight.Should().Be(expectedTsar.Weight);
 
-		    actualTsar.Parent.Name.Should().Be(expectedTsar.Parent.Name);
-		    actualTsar.Parent.Age.Should().Be(expectedTsar.Parent.Age);
-		    actualTsar.Parent.Height.Should().Be(expectedTsar.Parent.Height);
-		    actualTsar.Parent.Weight.Should().Be(expectedTsar.Parent.Weight);
-            
 		}
 
 		[Test]
@@ -38,10 +33,18 @@ namespace HomeExercises
 			// Какие недостатки у такого подхода? 
 			Assert.True(AreEqual(actualTsar, expectedTsar));
 
-            //Нам приходится полагаться на устройство метода AreEqual - если вдруг
-            //его имплементация поменяется, или в ней будут ошибки, наш тест их не
-            //обнаружит, это плохо, поэтому нужно явно проверять равенство интересующих
-            //нас полей. А корректность работы AreEqual можно проверить еще одним тестом.
+			//Метод AreEqual в его текущей реализации имеет две проблемы: он нерасширяем и
+			//у него нет понятных сообщений об ошибках. Для решения проблемы с расширяемостью
+			//скорее всего пришлось бы использовать рефлексию, но тогда тест будет слишком сложным
+			//для понимания и, кроме того, его вероятно тоже пришлось бы тестировать на ошибки.
+
+			//В моем решении я использую метод ShouldBeEquivalentTo() из Fluent Assertions.
+			//Он умеет итерироваться по полям класса, следовательно его скорее всего не понадобится
+			//переписывать при добавлении новых полей объекту (исключение составляют поля типа Id, они
+			//отличаются у любых объектов, даже тех, которые нам удобно считать одинаковыми)
+
+			//Кроме того, в случае ошибки этот метод покажет, какие именно поля отличались, этим
+			//он лучше, чем тест основанный на AreEquals, который лишь говорил что метод вернул false вместо true
 		}
 
 		private bool AreEqual(Person actual, Person expected)
