@@ -29,16 +29,16 @@ namespace HomeExercises {
 		[TestCase("+1.23", 4, 2, true, ExpectedResult = true, TestName = "Should return true when number has plus")]
 
 
-		public bool isValidNumber(string value, int precision, int scale = 0, bool onlyPositive = false) {
+		public bool IsValidNumber(string value, int precision, int scale = 0, bool onlyPositive = false) {
 			return new NumberValidator(precision, scale, onlyPositive).IsValidNumber(value);
 		}
 
 
-		[TestCase(-1, 2, false, TestName = "Should throw when precision is negative")]
-		[TestCase(0, 1, true, TestName = "Should throw when precision is zero")]
-		[TestCase(1, -1, true, TestName = "Should throw when scale is negative")]
-		[TestCase(2, 2, true, TestName = "Should throw when scale is equal to precision")]
-		[TestCase(1, 2, true, TestName = "Should throw when scalse is greater than precision")]
+		[TestCase(-1, 2, false, TestName = "Should throw ArgumentException when precision is negative")]
+		[TestCase(0, 1, true, TestName = "Should throw ArgumentException when precision is zero")]
+		[TestCase(1, -1, true, TestName = "Should throw ArgumentException when scale is negative")]
+		[TestCase(2, 2, true, TestName = "Should throw ArgumentException when scale is equal to precision")]
+		[TestCase(1, 2, true, TestName = "Should throw ArgumentException when scalse is greater than precision")]
 		public void ShouldThrowWhenIntializedWithInvalidData(int precision, int scale, bool onlyPositive) {
 			Action act = () => new NumberValidator(precision, scale, onlyPositive);
 
